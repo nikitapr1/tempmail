@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: "nginx:stable-alpine"
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/var/www/tempmail/
+  php:
+    build:
+      context: dockerfiles
+      dockerfile: php.Dockerfile
+    volumes:
+      - ./:/var/www/tempmail/
+  mysql:
+    image: "mysql:8.0"
+    ports:
+      - "3316:3306"
+    env_file:
+      - docker-mysql.env
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+      - ./dump.sql:/home/dump.sql:ro
+
+  composer:
+    build:
+      context: dockerfiles
+      dockerfile: composer.Dockerfile
+    volumes:
+      - ./:/var/www/tempmail/
+
+  artisan:
+    build:
+      context: dockerfiles
+      dockerfile: php.Dockerfile
+    volumes:
+      - ./:/var/www/tempmail/
+    entrypoint: ["php", "/var/www/tempmail/artisan"]
